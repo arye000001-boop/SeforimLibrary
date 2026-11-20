@@ -48,10 +48,22 @@ def gather(src):
                         bytes=0, links=0, feats=set())
     log(f"  {len(books)} books, {len(cat_parent)} categories")
 
-    log("measuring line bytes per book (full scan of line table)")
-    for b, n, s in src.execute("SELECT bookId,COUNT(*),COALESCE(SUM(LENGTH(content)),0) FROM line GROUP BY bookId"):
+    log("measuring stored bytes per book")
+    line_cols = {r[1] for r in src.execute("PRAGMA table_info(line)")}
+    has_split = bool(src.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='line_content'").fetchone())
+    if "content" in line_cols:
+        q = "SELECT bookId,COUNT(*),COALESCE(SUM(LENGTH(content)),0) FROM line GROUP BY bookId"
+    elif has_split:
+        # real schema-7 layout: line_content(id, content) holds the (zstd-compressed) text
+        q = ("SELECT l.bookId,COUNT(*),COALESCE(SUM(LENGTH(c.content)),0) "
+             "FROM line l LEFT JOIN line_content c ON c.id=l.id GROUP BY l.bookId")
+    else:
+        sys.exit("cannot find where line text is stored")
+    log("  layout:", "line.content" if "content" in line_cols else "line + line_content")
+    for b, n, s in src.execute(q):
         if b in books:
-            books[b]["bytes"] = int(s)
+            # + per-line row/index overhead (line, line_ref, line_toc, indexes)
+            books[b]["bytes"] = int(s) + 90 * n
             books[b]["nlines"] = n
 
     log("reading connection types and link pairs (full scan of link table)")
@@ -149,6 +161,7 @@ HANDLED = {
     "alt_toc_structure", "alt_toc_entry", "line_alt_toc", "book_acronym",
     "default_commentator", "default_targum", "banner", "book_banner",
     "book_protection", "line_divine_name", "line_note", "line_note_divine_name",
+    "line_content", "zstd_dict",
 }
 FLAG_TYPES = {"hasTargumConnection": "TARGUM", "hasReferenceConnection": "REFERENCE",
               "hasSourceConnection": "SOURCE", "hasCommentaryConnection": "COMMENTARY",
@@ -172,7 +185,7 @@ def build(src_path, out_path, sel, chain, cat_parent, label):
         d.execute(sql)
     unhandled = [n for _, n, _ in tables if n not in HANDLED]
     if unhandled:
-        log("WARNING: tables not copied (not in sampler):", unhandled)
+        log("note: tables unknown to the sampler:", unhandled)
 
     d.execute("CREATE TEMP TABLE sel_book(id INTEGER PRIMARY KEY)")
     d.executemany("INSERT INTO sel_book VALUES(?)", [(i,) for i in sel])
@@ -202,6 +215,10 @@ def build(src_path, out_path, sel, chain, cat_parent, label):
     cp("generation")
     cp("book_generation", f"bookId IN {SB}")
     cp("line", f"bookId IN {SB}")
+    if any(n == "line_content" for _, n, _ in tables):
+        cp("line_content", "id IN (SELECT id FROM main.line)")
+    if any(n == "zstd_dict" for _, n, _ in tables):
+        cp("zstd_dict")
     cp("line_ref", f"bookId IN {SB}")
     cp("line_dh", f"bookId IN {SB}")
     cp("tocEntry", f"bookId IN {SB}")
@@ -228,6 +245,13 @@ def build(src_path, out_path, sel, chain, cat_parent, label):
     cp("line_note_divine_name", "lineId IN (SELECT id FROM main.line)")
     cp("schema_meta")
 
+    for n in unhandled:  # unknown but small (dictionaries, lookups): copy whole; big ones are skipped loudly
+        cnt = d.execute(f"SELECT COUNT(*) FROM src.\"{n}\"").fetchone()[0]
+        if cnt <= 20000:
+            cp(f'"{n}"')
+        else:
+            log(f"WARNING: unknown table {n} has {cnt} rows - NOT copied")
+
     log("creating indexes / views / triggers")
     for _, name, sql in later:
         d.execute(sql)
@@ -243,8 +267,6 @@ def build(src_path, out_path, sel, chain, cat_parent, label):
                 SELECT 1 FROM link l JOIN connection_type c ON c.id=l.connectionTypeId
                 WHERE upper(c.name)=? AND (l.sourceBookId=book.id OR l.targetBookId=book.id))""", (tname,))
 
-    d.execute("INSERT OR REPLACE INTO schema_meta(key,value) VALUES('sample_library','1')")
-    d.execute("INSERT OR REPLACE INTO schema_meta(key,value) VALUES('sample_books',?)", (str(len(sel)),))
     uv = d.execute("PRAGMA src.user_version").fetchone()[0]
     d.commit()
     d.execute("DETACH DATABASE src")
@@ -266,6 +288,12 @@ def verify(out_path):
     log(f"integrity_check={ic}  foreign_key_violations={len(fk)}")
     if fk:
         log("  first violations:", fk[:5])
+    if d.execute("SELECT 1 FROM sqlite_master WHERE name='line_content'").fetchone():
+        miss = d.execute("SELECT COUNT(*) FROM line l LEFT JOIN line_content c ON c.id=l.id WHERE c.id IS NULL").fetchone()[0]
+        orph = d.execute("SELECT COUNT(*) FROM line_content c LEFT JOIN line l ON l.id=c.id WHERE l.id IS NULL").fetchone()[0]
+        log(f"lines without content={miss}  orphan content rows={orph}")
+        if miss or orph:
+            fk = fk + [("line_content", miss, orph)]
     meta = dict(d.execute("SELECT key,value FROM schema_meta"))
     log("schema_meta:", {k: (v if len(v) < 60 else v[:57] + '...') for k, v in meta.items()})
     ok = ic == "ok" and not fk
