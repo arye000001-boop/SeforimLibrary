@@ -1,11 +1,145 @@
-run: 44647791306  status-before-this-step: failure
+run: 44648011519  status-before-this-step: failure
 
-===== decompress.log (last 250 lines) =====
+===== decompress.log (last 400 lines) =====
 schema_meta: {'db_version': '39', 'db_schema_version': '7'}
 books: 8258
-tables: ['alt_toc_entry', 'alt_toc_structure', 'author', 'banner', 'book', 'book_acronym', 'book_author', 'book_banner', 'book_base_text', 'book_generation', 'book_has_links', 'book_protection', 'book_pub_date', 'book_pub_place', 'book_topic', 'book_version', 'category', 'category_closure', 'connection_type', 'default_commentator', 'default_targum', 'generation', 'line', 'line_alt_toc', 'line_content', 'line_dh', 'line_divine_name', 'line_note', 'line_note_divine_name', 'line_ref', 'line_toc', 'link', 'link_anchor', 'link_coverage', 'link_range', 'link_suppressed_side', 'pub_date', 'pub_place', 'schema_meta', 'source', 'sqlite_stat1', 'sqlite_stat4', 'tocEntry', 'tocText', 'topic', 'version_line', 'zstd_dict']
+--- REAL SCHEMA (columns) ---
+T alt_toc_entry(id INTEGER PK, structureId INTEGER, parentId INTEGER, textId INTEGER, level INTEGER, lineId INTEGER, isLastChild INTEGER, hasChildren INTEGER)
+T alt_toc_structure(id INTEGER PK, bookId INTEGER, key TEXT, title TEXT, heTitle TEXT)
+T author(id INTEGER PK, name TEXT)
+T banner(id INTEGER PK, text TEXT)
+T book(id INTEGER PK, categoryId INTEGER, sourceId INTEGER, title TEXT, heRef TEXT, heShortDesc TEXT, heDesc TEXT, notesContent TEXT, orderIndex INTEGER, totalLines INTEGER, isBaseBook INTEGER, hasTargumConnection INTEGER, hasReferenceConnection INTEGER, hasSourceConnection INTEGER, hasCommentaryConnection INTEGER, hasOtherConnection INTEGER, hasAltStructures INTEGER, hasTeamim INTEGER, hasNekudot INTEGER, dependenceType TEXT, collectiveTitleHe TEXT, collectiveTitleEn TEXT, contentHash INTEGER)
+T book_acronym(bookId INTEGER PK, term TEXT PK)
+T book_author(bookId INTEGER PK, authorId INTEGER PK)
+T book_banner(bookId INTEGER PK, bannerId INTEGER)
+T book_base_text(bookId INTEGER PK, baseBookId INTEGER PK)
+T book_generation(bookId INTEGER PK, generationId INTEGER PK)
+T book_has_links(bookId INTEGER PK, hasSourceLinks INTEGER, hasTargetLinks INTEGER)
+T book_protection(bookId INTEGER PK, level INTEGER)
+T book_pub_date(bookId INTEGER PK, pubDateId INTEGER PK)
+T book_pub_place(bookId INTEGER PK, pubPlaceId INTEGER PK)
+T book_topic(bookId INTEGER PK, topicId INTEGER PK)
+T book_version(id INTEGER PK, bookId INTEGER, versionTitle TEXT, heVersionTitle TEXT, versionSource TEXT, priority REAL, license TEXT, versionNotes TEXT, heVersionNotes TEXT, hasContent INTEGER)
+T category(id INTEGER PK, parentId INTEGER, title TEXT, level INTEGER, orderIndex INTEGER, heShortDesc TEXT, heDesc TEXT)
+T category_closure(ancestorId INTEGER PK, descendantId INTEGER PK)
+T connection_type(id INTEGER PK, name TEXT)
+T default_commentator(bookId INTEGER PK, commentatorBookId INTEGER PK, position INTEGER)
+T default_targum(bookId INTEGER PK, targumBookId INTEGER PK, position INTEGER)
+T generation(id INTEGER PK, name TEXT)
+T line(id INTEGER PK, bookId INTEGER, lineIndex INTEGER, heRef TEXT, tocEntryId INTEGER, charCount INTEGER)
+T line_alt_toc(lineId INTEGER PK, structureId INTEGER PK, altTocEntryId INTEGER)
+T line_content(id INTEGER PK, content TEXT)
+T line_dh(bookId INTEGER PK, dhText TEXT PK, lineIndex INTEGER PK, dhDisplay TEXT)
+T line_divine_name(lineId INTEGER PK, charStart INTEGER PK, span INTEGER)
+T line_note(lineId INTEGER PK, noteIndex INTEGER PK, charPos INTEGER, hasMarker INTEGER, body TEXT)
+T line_note_divine_name(lineId INTEGER PK, noteIndex INTEGER PK, charStart INTEGER PK, span INTEGER)
+T line_ref(bookId INTEGER PK, refKeyHash INTEGER PK, lineIndex INTEGER PK)
+T line_toc(lineId INTEGER PK, tocEntryId INTEGER)
+T link(id INTEGER PK, sourceBookId INTEGER, targetBookId INTEGER, sourceLineId INTEGER, targetLineId INTEGER, targetLineIndex INTEGER, targetBookOrderIndex INTEGER, connectionTypeId INTEGER, baseProvenance INTEGER)
+T link_anchor(linkId INTEGER PK, side INTEGER PK, charStart INTEGER PK, charEnd INTEGER, label TEXT)
+T link_coverage(lineId INTEGER PK, linkId INTEGER PK, side INTEGER PK)
+T link_range(linkId INTEGER PK, side INTEGER PK, endLineId INTEGER, endLineIndex INTEGER)
+T link_suppressed_side(linkId INTEGER PK, side INTEGER PK, reasonMask INTEGER)
+T pub_date(id INTEGER PK, date TEXT)
+T pub_place(id INTEGER PK, name TEXT)
+T schema_meta(key TEXT PK, value TEXT)
+T source(id INTEGER PK, name TEXT)
+T tocEntry(id INTEGER PK, bookId INTEGER, parentId INTEGER, textId INTEGER, level INTEGER, lineId INTEGER, isLastChild INTEGER, hasChildren INTEGER)
+T tocText(id INTEGER PK, text TEXT)
+T topic(id INTEGER PK, name TEXT)
+T version_line(versionId INTEGER PK, lineId INTEGER PK, content TEXT, charCount INTEGER)
+T zstd_dict(id INTEGER PK, dict BLOB)
+--- other objects ---
+--- virtual/fts ---
+('link', 'CREATE TABLE link (\n    id INTEGER PRIMARY KEY NOT NULL,\n    sourceBookId INTEGER NOT NULL,\n    targetBookId INTEGER NOT NULL,\n    sourceLineId INTEGER NOT NULL,\n    targetLineId INTEGER NOT NULL,\n    targetLineIndex INTEGER NOT NULL,\n    targetBookOrderIndex INTEGER NOT NULL,\n    connectionTypeId INTEGER NOT NULL,\n    -- Orientation provenance: 0=NONE, 1=INFERRED_TITLE ("X on Y" parse),\n    -- 2=SEFARIA_DECLARED (`base_text_titles`). Boosts declared > inferred >\n    -- lateral citations in the SOURCE virtual view\'s ORDER BY clause.\n    baseProvenance INTEGER NOT NULL DEFAULT 0,\n    FOREIGN KEY (sourceBookId) REFERENCES book(id) ON DELETE CASCADE,\n    FOREIGN KEY (targetBookId) REFERENCES book(id) ON DELETE CASCADE,\n    FOREIGN KEY (sourceLineId) REFERENCES line(id) ON DELETE CASCADE,\n    FOREIGN KEY (targetLineId) REFERENCES line(id) ON DELETE CASCADE,\n    FOREIGN KEY (connectionTypeId) REFERENCES connection_type(id) ON DELETE CASCADE\n)')
+--- table sizes (MB) ---
+  line_content                                1667.1
+  line                                         455.3
+  link                                         213.5
+  line_ref                                     132.2
+  idx_link_source_targetorder                  124.4
+  idx_line_book_index                          112.8
+  line_toc                                     102.0
+  idx_link_type_source_line                    101.0
+  idx_link_type_target_line                    100.5
+  line_dh                                       97.8
+  idx_linetoc_toc                               97.0
+  idx_link_target_line                          88.9
+  idx_link_source_book                          79.4
+  version_line                                  79.3
+  idx_link_target_book                          79.3
+  idx_line_toc                                  76.0
+  link_anchor                                   58.5
+  sqlite_autoindex_link_anchor_1                48.9
+  line_alt_toc                                  45.9
+  tocEntry                                      44.7
+  line_note                                     42.9
+  sqlite_autoindex_line_alt_toc_1               38.4
+  link_range                                    35.4
+  idx_line_alt_toc_entry                        30.0
+  idx_line_alt_toc_structure                    28.0
+--- line-related CREATE sql ---
+CREATE TABLE line (
+    id INTEGER PRIMARY KEY NOT NULL,
+    bookId INTEGER NOT NULL,
+    lineIndex INTEGER NOT NULL,
+    heRef TEXT,
+    tocEntryId INTEGER,
+    -- Visible character count of this line (HTML stripped). Used to compute scrollbar
+    -- thumb size from the currently visible lines.
+    charCount INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (bookId) REFERENCES book(id) ON DELETE CASCADE,
+    FOREIGN KEY (tocEntryId) REFERENCES tocEntry(id) ON DELETE SET NULL
+)
+CREATE TABLE line_content (
+    id INTEGER PRIMARY KEY NOT NULL,
+    content TEXT NOT NULL,
+    FOREIGN KEY (id) REFERENCES line(id) ON DELETE CASCADE
+)
+CREATE TABLE line_dh (
+    bookId INTEGER NOT NULL,
+    dhText TEXT NOT NULL,
+    lineIndex INTEGER NOT NULL,
+    dhDisplay TEXT NOT NULL,
+    PRIMARY KEY (bookId, dhText, lineIndex)
+) WITHOUT ROWID
+CREATE TABLE line_divine_name (
+    lineId INTEGER NOT NULL REFERENCES line(id) ON DELETE CASCADE,
+    charStart INTEGER NOT NULL,
+    span INTEGER NOT NULL,
+    PRIMARY KEY (lineId, charStart)
+) WITHOUT ROWID
+CREATE TABLE line_note (
+    lineId INTEGER NOT NULL REFERENCES line(id) ON DELETE CASCADE,
+    noteIndex INTEGER NOT NULL,
+    charPos INTEGER NOT NULL,
+    hasMarker INTEGER NOT NULL,
+    body TEXT NOT NULL,
+    PRIMARY KEY (lineId, noteIndex)
+) WITHOUT ROWID
+CREATE TABLE line_note_divine_name (
+    lineId INTEGER NOT NULL,
+    noteIndex INTEGER NOT NULL,
+    charStart INTEGER NOT NULL,
+    span INTEGER NOT NULL,
+    PRIMARY KEY (lineId, noteIndex, charStart),
+    FOREIGN KEY (lineId, noteIndex) REFERENCES line_note(lineId, noteIndex) ON DELETE CASCADE
+) WITHOUT ROWID
+CREATE TABLE line_ref (
+    bookId INTEGER NOT NULL,
+    refKeyHash INTEGER NOT NULL,
+    lineIndex INTEGER NOT NULL,
+    PRIMARY KEY (bookId, refKeyHash, lineIndex)
+) WITHOUT ROWID
+CREATE TABLE line_toc (
+    lineId INTEGER PRIMARY KEY,
+    tocEntryId INTEGER NOT NULL,
+    FOREIGN KEY (lineId) REFERENCES line(id) ON DELETE CASCADE,
+    FOREIGN KEY (tocEntryId) REFERENCES tocEntry(id) ON DELETE CASCADE
+)
+PRAGMA user_version/page_size/journal: (0,) (16384,) ('delete',)
 
-===== build-small.log (last 250 lines) =====
+===== build-small.log (last 400 lines) =====
 [    0.0s] reading categories / books
 [    0.0s]   8258 books, 1441 categories
 [    0.0s] measuring line bytes per book (full scan of line table)
