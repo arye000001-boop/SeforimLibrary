@@ -1,0 +1,120 @@
+name: "Build sample library (small seforim.db)"
+
+# Builds a SMALL, self-consistent seforim.db (schema 7) from the full library release:
+# whole books only, a wide spread of book kinds, and every link/commentary/note
+# whose both ends are inside the sample. Output: GitHub Release + workflow artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "SeforimLibrary release tag to sample from (empty = latest)"
+        type: string
+        default: ""
+      small_mb:
+        description: "Target size of the small sample (MB)"
+        type: string
+        default: "50"
+      large_mb:
+        description: "Target size of the larger sample (MB, must stay under 100)"
+        type: string
+        default: "95"
+
+permissions:
+  contents: write
+
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools/sample
+          sparse-checkout-cone-mode: true
+
+      - name: Workspace on the big disk
+        run: |
+          sudo mkdir -p /mnt/w && sudo chown "$USER" /mnt/w
+          df -h / /mnt
+          sudo apt-get install -y zstd jq >/dev/null
+
+      - name: Download the full library release
+        working-directory: /mnt/w
+        env:
+          TAG_IN: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          base=https://github.com/Otzaria/SeforimLibrary/releases
+          tag="$TAG_IN"
+          if [ -z "$tag" ]; then
+            latest=$(curl -fsS -o /dev/null -w '%{redirect_url}' "$base/latest")
+            tag=${latest##*/tag/}
+          fi
+          echo "TAG=$tag" | tee -a "$GITHUB_ENV"
+          curl -fsSL --retry 3 -o manifest.json "$base/download/$tag/seforim-schema7.db.zst.manifest.json"
+          jq -r '.parts[] | "\(.name) \(.sha256)"' manifest.json > parts.txt
+          while read -r name sha; do
+            echo "downloading $name"
+            curl -fSL --retry 5 --retry-delay 10 -o "$name" "$base/download/$tag/$name"
+            echo "$sha  $name" | sha256sum -c -
+          done < parts.txt
+          ls -la
+
+      - name: Decompress (streamed, parts are deleted afterwards)
+        working-directory: /mnt/w
+        run: |
+          set -euo pipefail
+          cat $(awk '{print $1}' parts.txt) | zstd -d -c --long=31 --memory=2048MB > seforim.db
+          rm -f seforim-schema7.db.zst.part-*
+          ls -la seforim.db
+          df -h /mnt
+          python3 - <<'EOF'
+          import sqlite3
+          d = sqlite3.connect("file:/mnt/w/seforim.db?mode=ro&immutable=1", uri=True)
+          print("schema_meta:", dict(d.execute("select key,value from schema_meta")))
+          print("books:", d.execute("select count(*) from book").fetchone()[0])
+          print("tables:", [r[0] for r in d.execute("select name from sqlite_master where type='table' order by 1")])
+          EOF
+
+      - name: Build the small sample
+        run: |
+          python3 tools/sample/make_sample_db.py --src /mnt/w/seforim.db \
+            --out /mnt/w/seforim-sample-small.db --target-mb "${{ inputs.small_mb }}" --hard-mb 100
+
+      - name: Build the larger sample
+        run: |
+          python3 tools/sample/make_sample_db.py --src /mnt/w/seforim.db \
+            --out /mnt/w/seforim-sample-large.db --target-mb "${{ inputs.large_mb }}" --hard-mb 100
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          cp /mnt/w/seforim-sample-small.db  "out/seforim-sample-${{ inputs.small_mb }}MB.db"
+          cp /mnt/w/seforim-sample-small_report.json "out/report-${{ inputs.small_mb }}MB.json"
+          cp /mnt/w/seforim-sample-large.db  "out/seforim-sample-${{ inputs.large_mb }}MB.db"
+          cp /mnt/w/seforim-sample-large_report.json "out/report-${{ inputs.large_mb }}MB.json"
+          ls -la out
+          sha256sum out/*.db > out/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seforim-sample-library
+          path: out/*
+          retention-days: 30
+
+      - name: Publish as a GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rel="sample-${TAG}-$(date +%Y%m%d%H%M)"
+          cat > notes.md <<EOF
+          Small sample of the Otzaria library (schema 7), sampled from ${TAG}.
+          Whole books only; links, commentaries, targum, references and notes are kept
+          only when both ends are inside the sample. Rename the chosen file to
+          \`seforim.db\` and put it in the Otzaria library folder (see tools/sample/README.md).
+          EOF
+          gh release create "$rel" out/* --title "$rel" --notes-file notes.md --target "${{ github.sha }}"
+          echo "release: $rel"
