@@ -1,0 +1,22 @@
+run: 44647791306  status-before-this-step: failure
+
+===== decompress.log (last 250 lines) =====
+schema_meta: {'db_version': '39', 'db_schema_version': '7'}
+books: 8258
+tables: ['alt_toc_entry', 'alt_toc_structure', 'author', 'banner', 'book', 'book_acronym', 'book_author', 'book_banner', 'book_base_text', 'book_generation', 'book_has_links', 'book_protection', 'book_pub_date', 'book_pub_place', 'book_topic', 'book_version', 'category', 'category_closure', 'connection_type', 'default_commentator', 'default_targum', 'generation', 'line', 'line_alt_toc', 'line_content', 'line_dh', 'line_divine_name', 'line_note', 'line_note_divine_name', 'line_ref', 'line_toc', 'link', 'link_anchor', 'link_coverage', 'link_range', 'link_suppressed_side', 'pub_date', 'pub_place', 'schema_meta', 'source', 'sqlite_stat1', 'sqlite_stat4', 'tocEntry', 'tocText', 'topic', 'version_line', 'zstd_dict']
+
+===== build-small.log (last 250 lines) =====
+[    0.0s] reading categories / books
+[    0.0s]   8258 books, 1441 categories
+[    0.0s] measuring line bytes per book (full scan of line table)
+Traceback (most recent call last):
+  File "/home/runner/work/SeforimLibrary/SeforimLibrary/tools/sample/make_sample_db.py", line 357, in <module>
+    main()
+    ~~~~^^
+  File "/home/runner/work/SeforimLibrary/SeforimLibrary/tools/sample/make_sample_db.py", line 316, in main
+    books, nbr, ctype, weights, chain, cat_parent = gather(src)
+                                                    ~~~~~~^^^^^
+  File "/home/runner/work/SeforimLibrary/SeforimLibrary/tools/sample/make_sample_db.py", line 52, in gather
+    for b, n, s in src.execute("SELECT bookId,COUNT(*),COALESCE(SUM(LENGTH(content)),0) FROM line GROUP BY bookId"):
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: content
