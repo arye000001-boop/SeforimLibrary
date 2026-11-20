@@ -74,7 +74,21 @@ jobs:
           d = sqlite3.connect("file:/mnt/w/seforim.db?mode=ro&immutable=1", uri=True)
           print("schema_meta:", dict(d.execute("select key,value from schema_meta")))
           print("books:", d.execute("select count(*) from book").fetchone()[0])
-          print("tables:", [r[0] for r in d.execute("select name from sqlite_master where type='table' order by 1")])
+          print("--- REAL SCHEMA (columns) ---")
+          for (n,) in d.execute("select name from sqlite_master where type='table' and name not like 'sqlite_%' order by 1").fetchall():
+              cols = ", ".join(f"{c[1]} {c[2]}{' PK' if c[5] else ''}" for c in d.execute(f'pragma table_info("{n}")'))
+              print(f"T {n}({cols})")
+          print("--- other objects ---")
+          for r in d.execute("select type,name,tbl_name from sqlite_master where type in ('view','trigger') order by 1,2"): print(r)
+          print("--- virtual/fts ---")
+          for r in d.execute("select name,sql from sqlite_master where sql like '%VIRTUAL%'"): print(r)
+          print("--- table sizes (MB) ---")
+          try:
+              for n,s in d.execute("select name,sum(pgsize)/1e6 from dbstat where aggregate=0 group by name order by 2 desc limit 25"): print(f"  {n:40s} {s:9.1f}")
+          except Exception as e: print("dbstat unavailable", e)
+          print("--- line-related CREATE sql ---")
+          for n,s in d.execute("select name,sql from sqlite_master where type='table' and name like 'line%' and name not like 'line_alt%' order by 1"): print(s)
+          print("PRAGMA user_version/page_size/journal:", d.execute("pragma user_version").fetchone(), d.execute("pragma page_size").fetchone(), d.execute("pragma journal_mode").fetchone())
           EOF
 
       - name: Build the small sample
@@ -129,7 +143,7 @@ jobs:
           {
             echo "run: ${{ github.run_id }}  status-before-this-step: ${{ job.status }}"
             for f in decompress build-small build-large; do
-              [ -f /mnt/w/$f.log ] && { echo; echo "===== $f.log (last 250 lines) ====="; tail -n 250 /mnt/w/$f.log; }
+              [ -f /mnt/w/$f.log ] && { echo; echo "===== $f.log (last 400 lines) ====="; tail -n 400 /mnt/w/$f.log; }
             done
           } > log.txt
           gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref=refs/heads/sample-logs -f sha="$GITHUB_SHA" >/dev/null 2>&1 || true
