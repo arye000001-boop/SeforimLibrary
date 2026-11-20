@@ -69,7 +69,7 @@ jobs:
           rm -f seforim-schema7.db.zst.part-*
           ls -la seforim.db
           df -h /mnt
-          python3 - <<'EOF'
+          python3 - <<'EOF' 2>&1 | tee /mnt/w/decompress.log
           import sqlite3
           d = sqlite3.connect("file:/mnt/w/seforim.db?mode=ro&immutable=1", uri=True)
           print("schema_meta:", dict(d.execute("select key,value from schema_meta")))
@@ -79,13 +79,15 @@ jobs:
 
       - name: Build the small sample
         run: |
+          set -o pipefail
           python3 tools/sample/make_sample_db.py --src /mnt/w/seforim.db \
-            --out /mnt/w/seforim-sample-small.db --target-mb "${{ inputs.small_mb }}" --hard-mb 100
+            --out /mnt/w/seforim-sample-small.db --target-mb "${{ inputs.small_mb }}" --hard-mb 100 2>&1 | tee /mnt/w/build-small.log
 
       - name: Build the larger sample
         run: |
+          set -o pipefail
           python3 tools/sample/make_sample_db.py --src /mnt/w/seforim.db \
-            --out /mnt/w/seforim-sample-large.db --target-mb "${{ inputs.large_mb }}" --hard-mb 100
+            --out /mnt/w/seforim-sample-large.db --target-mb "${{ inputs.large_mb }}" --hard-mb 100 2>&1 | tee /mnt/w/build-large.log
 
       - name: Package
         run: |
@@ -118,3 +120,20 @@ jobs:
           EOF
           gh release create "$rel" out/* --title "$rel" --notes-file notes.md --target "${{ github.sha }}"
           echo "release: $rel"
+
+      - name: Publish log tail to branch sample-logs
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "run: ${{ github.run_id }}  status-before-this-step: ${{ job.status }}"
+            for f in decompress build-small build-large; do
+              [ -f /mnt/w/$f.log ] && { echo; echo "===== $f.log (last 250 lines) ====="; tail -n 250 /mnt/w/$f.log; }
+            done
+          } > log.txt
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref=refs/heads/sample-logs -f sha="$GITHUB_SHA" >/dev/null 2>&1 || true
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/last-run-log.txt?ref=sample-logs" --jq .sha 2>/dev/null || true)
+          args=(-f message="log ${{ github.run_id }} [skip ci]" -f branch=sample-logs -f content="$(base64 -w0 log.txt)")
+          [ -n "$sha" ] && args+=(-f sha="$sha")
+          gh api -X PUT "repos/$GITHUB_REPOSITORY/contents/last-run-log.txt" "${args[@]}" >/dev/null
