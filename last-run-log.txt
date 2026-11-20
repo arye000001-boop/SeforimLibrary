@@ -1,4 +1,4 @@
-run: 44648011519  status-before-this-step: failure
+run: 44648205941  status-before-this-step: success
 
 ===== decompress.log (last 400 lines) =====
 schema_meta: {'db_version': '39', 'db_schema_version': '7'}
@@ -142,15 +142,251 @@ PRAGMA user_version/page_size/journal: (0,) (16384,) ('delete',)
 ===== build-small.log (last 400 lines) =====
 [    0.0s] reading categories / books
 [    0.0s]   8258 books, 1441 categories
-[    0.0s] measuring line bytes per book (full scan of line table)
-Traceback (most recent call last):
-  File "/home/runner/work/SeforimLibrary/SeforimLibrary/tools/sample/make_sample_db.py", line 357, in <module>
-    main()
-    ~~~~^^
-  File "/home/runner/work/SeforimLibrary/SeforimLibrary/tools/sample/make_sample_db.py", line 316, in main
-    books, nbr, ctype, weights, chain, cat_parent = gather(src)
-                                                    ~~~~~~^^^^^
-  File "/home/runner/work/SeforimLibrary/SeforimLibrary/tools/sample/make_sample_db.py", line 52, in gather
-    for b, n, s in src.execute("SELECT bookId,COUNT(*),COALESCE(SUM(LENGTH(content)),0) FROM line GROUP BY bookId"):
-                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-sqlite3.OperationalError: no such column: content
+[    0.0s] measuring stored bytes per book
+[    0.0s]   layout: line + line_content
+[    1.9s] reading connection types and link pairs (full scan of link table)
+[    8.2s] reading versions / notes
+[   22.0s] attempt 1: budget 30.0 MB -> 1784 books (estimate 30.0 MB)
+[   22.0s] [try1] copying 1784 books
+[   22.0s]   category                       694 rows  (0.0s)
+[   22.0s]   category_closure              2792 rows  (0.0s)
+[   22.0s]   book                          1784 rows  (0.0s)
+[   22.0s]   source                          12 rows  (0.0s)
+[   22.0s]   book_author                   1484 rows  (0.0s)
+[   22.0s]   author                         129 rows  (0.0s)
+[   22.0s]   book_topic                     260 rows  (0.0s)
+[   22.0s]   topic                           52 rows  (0.0s)
+[   22.0s]   book_pub_place                  26 rows  (0.0s)
+[   22.0s]   pub_place                        8 rows  (0.0s)
+[   22.0s]   book_pub_date                 1586 rows  (0.0s)
+[   22.0s]   pub_date                       116 rows  (0.0s)
+[   22.0s]   book_base_text                 849 rows  (0.0s)
+[   22.0s]   generation                       5 rows  (0.0s)
+[   22.0s]   book_generation               1781 rows  (0.0s)
+[   22.1s]   line                         75664 rows  (0.1s)
+[   22.1s]   line_content                 75664 rows  (0.0s)
+[   22.2s]   zstd_dict                        1 rows  (0.0s)
+[   22.2s]   line_ref                     45796 rows  (0.0s)
+[   22.2s]   line_dh                      21017 rows  (0.0s)
+[   22.2s]   tocEntry                     28524 rows  (0.0s)
+[   22.2s]   alt_toc_structure              183 rows  (0.0s)
+[   22.2s]   alt_toc_entry                 2237 rows  (0.0s)
+[   22.2s]   tocText                       2794 rows  (0.0s)
+[   22.2s]   line_toc                     75664 rows  (0.0s)
+[   22.3s]   line_alt_toc                  6967 rows  (0.0s)
+[   22.3s]   connection_type                 24 rows  (0.0s)
+[   22.4s]   link                         34281 rows  (0.1s)
+[   22.4s]   link_anchor                   2451 rows  (0.0s)
+[   22.4s]   link_range                    1752 rows  (0.0s)
+[   22.4s]   link_coverage                 1656 rows  (0.0s)
+[   22.4s]   link_suppressed_side           396 rows  (0.0s)
+[   22.4s]   book_has_links                1784 rows  (0.0s)
+[   22.4s]   book_version                  1868 rows  (0.0s)
+[   22.4s]   version_line                 20974 rows  (0.0s)
+[   22.5s]   book_acronym                 12396 rows  (0.0s)
+[   22.5s]   default_commentator             70 rows  (0.0s)
+[   22.5s]   default_targum                   0 rows  (0.0s)
+[   22.5s]   book_banner                     73 rows  (0.0s)
+[   22.5s]   banner                          13 rows  (0.0s)
+[   22.5s]   book_protection                  0 rows  (0.0s)
+[   22.5s]   line_divine_name              1220 rows  (0.0s)
+[   22.5s]   line_note                     2643 rows  (0.0s)
+[   22.5s]   line_note_divine_name           10 rows  (0.0s)
+[   22.5s]   schema_meta                      2 rows  (0.0s)
+[   22.5s] creating indexes / views / triggers
+[   22.7s] fixing derived flags so the UI never offers links that are not in the sample
+[   23.0s] [try1] built /mnt/w/seforim-sample-small.db.try: 39.6 MB
+[   38.4s] attempt 2: budget 36.8 MB -> 2035 books (estimate 36.8 MB)
+[   38.4s] [try2] copying 2035 books
+[   38.4s]   category                       750 rows  (0.0s)
+[   38.4s]   category_closure              3032 rows  (0.0s)
+[   38.4s]   book                          2035 rows  (0.0s)
+[   38.4s]   source                          12 rows  (0.0s)
+[   38.4s]   book_author                   1712 rows  (0.0s)
+[   38.4s]   author                         142 rows  (0.0s)
+[   38.4s]   book_topic                     302 rows  (0.0s)
+[   38.4s]   topic                           55 rows  (0.0s)
+[   38.4s]   book_pub_place                  33 rows  (0.0s)
+[   38.4s]   pub_place                        8 rows  (0.0s)
+[   38.4s]   book_pub_date                 1798 rows  (0.0s)
+[   38.4s]   pub_date                       124 rows  (0.0s)
+[   38.4s]   book_base_text                 992 rows  (0.0s)
+[   38.4s]   generation                       5 rows  (0.0s)
+[   38.4s]   book_generation               2031 rows  (0.0s)
+[   38.5s]   line                         92161 rows  (0.1s)
+[   38.5s]   line_content                 92161 rows  (0.1s)
+[   38.5s]   zstd_dict                        1 rows  (0.0s)
+[   38.6s]   line_ref                     56104 rows  (0.0s)
+[   38.6s]   line_dh                      26747 rows  (0.0s)
+[   38.6s]   tocEntry                     34503 rows  (0.0s)
+[   38.6s]   alt_toc_structure              216 rows  (0.0s)
+[   38.6s]   alt_toc_entry                 2524 rows  (0.0s)
+[   38.6s]   tocText                       3166 rows  (0.0s)
+[   38.7s]   line_toc                     92161 rows  (0.0s)
+[   38.7s]   line_alt_toc                  9436 rows  (0.0s)
+[   38.7s]   connection_type                 24 rows  (0.0s)
+[   38.8s]   link                         42868 rows  (0.2s)
+[   38.8s]   link_anchor                   3008 rows  (0.0s)
+[   38.9s]   link_range                    2176 rows  (0.0s)
+[   38.9s]   link_coverage                 1905 rows  (0.0s)
+[   38.9s]   link_suppressed_side           505 rows  (0.0s)
+[   38.9s]   book_has_links                2035 rows  (0.0s)
+[   38.9s]   book_version                  2114 rows  (0.0s)
+[   38.9s]   version_line                 24171 rows  (0.0s)
+[   38.9s]   book_acronym                 14464 rows  (0.0s)
+[   38.9s]   default_commentator             85 rows  (0.0s)
+[   38.9s]   default_targum                   0 rows  (0.0s)
+[   38.9s]   book_banner                     83 rows  (0.0s)
+[   38.9s]   banner                          15 rows  (0.0s)
+[   38.9s]   book_protection                  0 rows  (0.0s)
+[   38.9s]   line_divine_name              1375 rows  (0.0s)
+[   38.9s]   line_note                     2837 rows  (0.0s)
+[   39.0s]   line_note_divine_name           11 rows  (0.0s)
+[   39.0s]   schema_meta                      2 rows  (0.0s)
+[   39.0s] creating indexes / views / triggers
+[   39.2s] fixing derived flags so the UI never offers links that are not in the sample
+[   39.6s] [try2] built /mnt/w/seforim-sample-small.db.try: 47.4 MB
+[   40.1s] integrity_check=ok  foreign_key_violations=0
+[   40.1s] lines without content=0  orphan content rows=0
+[   40.1s] schema_meta: {'db_version': '39', 'db_schema_version': '7'}
+[   40.1s] report -> /mnt/w/seforim-sample-small_report.json
+[   40.1s]   books: 2035
+[   40.1s]   lines: 92161
+[   40.1s]   links: 42868
+[   40.1s]   links_by_type: {'COMMENTARY': 28330, 'OTHER': 5860, 'LINKER': 2730, 'MESORAT_HASHAS': 2597, 'RELATED': 2170, 'TARGUM': 727, 'REFERENCE': 304, 'EIN_MISHPAT': 81, 'MISHNAH_IN_TALMUD': 31, 'QUOTATION': 21, 'FOOTNOTES': 16, 'SIFREI_MITZVOT': 1}
+[   40.1s]   books_by_top_category: {'הלכה': 894, 'משנה': 476, 'תלמוד בבלי': 218, 'תנ״ך': 129, 'תלמוד ירושלמי': 118, 'מדרש': 78, 'תוספתא': 75, 'קבלה': 14, 'סדר התפילה': 10, 'שו״ת': 6, 'ספרי מוסר': 6, 'ספרות עזר': 6, 'מחשבת ישראל': 2, 'בית שני': 2, 'חסידות': 1}
+[   40.1s]   books_by_dependence: {'commentary': 1663, 'None': 359, 'targum': 12, 'guides': 1}
+[   40.1s]   with_teamim: 15
+[   40.1s]   with_nekudot: 219
+[   40.1s]   with_alt_toc: 212
+[   40.1s]   with_versions: 1884
+[   40.1s]   line_notes: 2837
+[   40.1s]   link_anchors: 3008
+[   40.1s]   link_ranges: 2176
+[   40.1s] FINAL /mnt/w/seforim-sample-small.db: 47.4 MB (limit 100.0 MB)  consistent=True
+
+===== build-large.log (last 400 lines) =====
+[    0.0s] reading categories / books
+[    0.0s]   8258 books, 1441 categories
+[    0.0s] measuring stored bytes per book
+[    0.0s]   layout: line + line_content
+[    1.9s] reading connection types and link pairs (full scan of link table)
+[    8.2s] reading versions / notes
+[   27.6s] attempt 1: budget 57.0 MB -> 2659 books (estimate 57.0 MB)
+[   27.6s] [try1] copying 2659 books
+[   27.6s]   category                       841 rows  (0.0s)
+[   27.6s]   category_closure              3395 rows  (0.0s)
+[   27.6s]   book                          2659 rows  (0.0s)
+[   27.6s]   source                          12 rows  (0.0s)
+[   27.6s]   book_author                   2278 rows  (0.0s)
+[   27.6s]   author                         175 rows  (0.0s)
+[   27.6s]   book_topic                     460 rows  (0.0s)
+[   27.6s]   topic                           66 rows  (0.0s)
+[   27.6s]   book_pub_place                  61 rows  (0.0s)
+[   27.6s]   pub_place                        9 rows  (0.0s)
+[   27.6s]   book_pub_date                 2304 rows  (0.0s)
+[   27.6s]   pub_date                       145 rows  (0.0s)
+[   27.6s]   book_base_text                1278 rows  (0.0s)
+[   27.6s]   generation                       5 rows  (0.0s)
+[   27.6s]   book_generation               2655 rows  (0.0s)
+[   27.8s]   line                        140816 rows  (0.1s)
+[   27.9s]   line_content                140816 rows  (0.1s)
+[   27.9s]   zstd_dict                        1 rows  (0.0s)
+[   27.9s]   line_ref                     85990 rows  (0.0s)
+[   27.9s]   line_dh                      43307 rows  (0.0s)
+[   28.0s]   tocEntry                     52950 rows  (0.0s)
+[   28.0s]   alt_toc_structure              313 rows  (0.0s)
+[   28.0s]   alt_toc_entry                 3782 rows  (0.0s)
+[   28.0s]   tocText                       4184 rows  (0.0s)
+[   28.0s]   line_toc                    140816 rows  (0.1s)
+[   28.1s]   line_alt_toc                 15466 rows  (0.0s)
+[   28.1s]   connection_type                 24 rows  (0.0s)
+[   28.3s]   link                         65776 rows  (0.2s)
+[   28.3s]   link_anchor                   5085 rows  (0.0s)
+[   28.3s]   link_range                    3495 rows  (0.0s)
+[   28.3s]   link_coverage                 2829 rows  (0.0s)
+[   28.3s]   link_suppressed_side           869 rows  (0.0s)
+[   28.3s]   book_has_links                2659 rows  (0.0s)
+[   28.4s]   book_version                  2710 rows  (0.0s)
+[   28.4s]   version_line                 36228 rows  (0.0s)
+[   28.4s]   book_acronym                 19041 rows  (0.0s)
+[   28.4s]   default_commentator            121 rows  (0.0s)
+[   28.4s]   default_targum                   0 rows  (0.0s)
+[   28.4s]   book_banner                    120 rows  (0.0s)
+[   28.4s]   banner                          19 rows  (0.0s)
+[   28.4s]   book_protection                  0 rows  (0.0s)
+[   28.4s]   line_divine_name              1879 rows  (0.0s)
+[   28.4s]   line_note                     4203 rows  (0.0s)
+[   28.5s]   line_note_divine_name           26 rows  (0.0s)
+[   28.5s]   schema_meta                      2 rows  (0.0s)
+[   28.5s] creating indexes / views / triggers
+[   28.9s] fixing derived flags so the UI never offers links that are not in the sample
+[   29.4s] [try1] built /mnt/w/seforim-sample-large.db.try: 70.8 MB
+[   50.8s] attempt 2: budget 74.2 MB -> 3043 books (estimate 74.2 MB)
+[   50.8s] [try2] copying 3043 books
+[   50.8s]   category                       877 rows  (0.0s)
+[   50.8s]   category_closure              3547 rows  (0.0s)
+[   50.8s]   book                          3043 rows  (0.0s)
+[   50.8s]   source                          12 rows  (0.0s)
+[   50.8s]   book_author                   2631 rows  (0.0s)
+[   50.8s]   author                         202 rows  (0.0s)
+[   50.8s]   book_topic                     546 rows  (0.0s)
+[   50.8s]   topic                           72 rows  (0.0s)
+[   50.8s]   book_pub_place                  78 rows  (0.0s)
+[   50.8s]   pub_place                        9 rows  (0.0s)
+[   50.8s]   book_pub_date                 2641 rows  (0.0s)
+[   50.8s]   pub_date                       158 rows  (0.0s)
+[   50.8s]   book_base_text                1575 rows  (0.0s)
+[   50.8s]   generation                       5 rows  (0.0s)
+[   50.8s]   book_generation               3038 rows  (0.0s)
+[   51.0s]   line                        180579 rows  (0.2s)
+[   51.1s]   line_content                180579 rows  (0.1s)
+[   51.1s]   zstd_dict                        1 rows  (0.0s)
+[   51.2s]   line_ref                    111962 rows  (0.0s)
+[   51.2s]   line_dh                      58429 rows  (0.0s)
+[   51.3s]   tocEntry                     67165 rows  (0.0s)
+[   51.3s]   alt_toc_structure              379 rows  (0.0s)
+[   51.3s]   alt_toc_entry                 4671 rows  (0.0s)
+[   51.3s]   tocText                       4976 rows  (0.0s)
+[   51.4s]   line_toc                    180579 rows  (0.1s)
+[   51.4s]   line_alt_toc                 21493 rows  (0.0s)
+[   51.4s]   connection_type                 24 rows  (0.0s)
+[   51.6s]   link                         86624 rows  (0.2s)
+[   51.7s]   link_anchor                   6850 rows  (0.0s)
+[   51.7s]   link_range                    4506 rows  (0.0s)
+[   51.7s]   link_coverage                 3586 rows  (0.0s)
+[   51.7s]   link_suppressed_side          1193 rows  (0.0s)
+[   51.7s]   book_has_links                3043 rows  (0.0s)
+[   51.7s]   book_version                  3076 rows  (0.0s)
+[   51.8s]   version_line                 44518 rows  (0.0s)
+[   51.8s]   book_acronym                 21730 rows  (0.0s)
+[   51.8s]   default_commentator            157 rows  (0.0s)
+[   51.8s]   default_targum                   0 rows  (0.0s)
+[   51.8s]   book_banner                    138 rows  (0.0s)
+[   51.8s]   banner                          20 rows  (0.0s)
+[   51.8s]   book_protection                  0 rows  (0.0s)
+[   51.8s]   line_divine_name              2224 rows  (0.0s)
+[   51.9s]   line_note                     4690 rows  (0.0s)
+[   51.9s]   line_note_divine_name           26 rows  (0.0s)
+[   51.9s]   schema_meta                      2 rows  (0.0s)
+[   51.9s] creating indexes / views / triggers
+[   52.4s] fixing derived flags so the UI never offers links that are not in the sample
+[   53.1s] [try2] built /mnt/w/seforim-sample-large.db.try: 89.9 MB
+[   54.1s] integrity_check=ok  foreign_key_violations=0
+[   54.1s] lines without content=0  orphan content rows=0
+[   54.1s] schema_meta: {'db_version': '39', 'db_schema_version': '7'}
+[   54.1s] report -> /mnt/w/seforim-sample-large_report.json
+[   54.1s]   books: 3043
+[   54.1s]   lines: 180579
+[   54.1s]   links: 86624
+[   54.1s]   links_by_type: {'COMMENTARY': 57067, 'OTHER': 13625, 'LINKER': 6070, 'RELATED': 3626, 'MESORAT_HASHAS': 3448, 'TARGUM': 1362, 'REFERENCE': 809, 'EIN_MISHPAT': 363, 'MIDRASH': 167, 'QUOTATION': 35, 'MISHNAH_IN_TALMUD': 31, 'FOOTNOTES': 16, 'SIFREI_MITZVOT': 4, 'LITURGY': 1}
+[   54.1s]   books_by_top_category: {'הלכה': 1381, 'משנה': 600, 'תלמוד בבלי': 390, 'תלמוד ירושלמי': 220, 'תנ״ך': 173, 'מדרש': 111, 'תוספתא': 87, 'קבלה': 23, 'סדר התפילה': 19, 'שו״ת': 10, 'ספרות עזר': 9, 'ספרי מוסר': 7, 'מחשבת ישראל': 7, 'חסידות': 4, 'בית שני': 2}
+[   54.1s]   books_by_dependence: {'commentary': 2482, 'None': 543, 'targum': 16, 'midrash': 1, 'guides': 1}
+[   54.1s]   with_teamim: 20
+[   54.1s]   with_nekudot: 342
+[   54.1s]   with_alt_toc: 369
+[   54.1s]   with_versions: 2770
+[   54.1s]   line_notes: 4690
+[   54.1s]   link_anchors: 6850
+[   54.1s]   link_ranges: 4506
+[   54.1s] FINAL /mnt/w/seforim-sample-large.db: 89.9 MB (limit 100.0 MB)  consistent=True
